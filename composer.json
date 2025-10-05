@@ -1,0 +1,51 @@
+{
+    "name": "atellitech/utils-hyperf",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "hyperf",
+        "utilities"
+    ],
+    "description": "The utilities for Hyperf framework.",
+    "autoload": {
+        "psr-4": {
+            "AtelliTech\\Hyperf\\Utils\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HyperfTest\\": "tests"
+        }
+    },
+    "require": {
+        "php": ">=8.3",
+        "doctrine/dbal": "^4.3",
+        "hyperf/command": "^3.1",
+        "hyperf/database": "^3.1",
+        "hyperf/db-connection": "^3.1",
+        "zircote/swagger-php": "^5.4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/phpstan": "^1.0",
+        "swoole/ide-helper": "dev-master"
+    },
+    "suggest": {
+        "swow/swow": "Required to create swow components."
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "codetest": "php-cs-fixer fix --verbose && phpstan"
+    },
+    "extra": {
+        "hyperf": {
+            "config": "AtelliTech\\Hyperf\\Utils\\ConfigProvider"
+        }
+    }
+}
