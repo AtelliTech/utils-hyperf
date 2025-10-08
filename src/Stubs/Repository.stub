@@ -6,6 +6,10 @@ namespace %NAMESPACE%;
 
 %USES%
 
-class %CLASS%
+class %CLASS%Repo extends AbstractRepository implements %CLASS%RepoInterface
 {
+    /**
+     * @var string
+     */
+    protected string $modelClass = %CLASS%::class;
 }

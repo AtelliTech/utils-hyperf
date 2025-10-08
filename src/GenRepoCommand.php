@@ -18,7 +18,7 @@ class GenRepoCommand extends HyperfCommand
     /**
      * @var string
      */
-    protected $basePath = BASE_PATH;
+    protected $basePath = BASE_PATH; // @phpstan-ignore-line
 
     /**
      * configure the command.
@@ -55,6 +55,8 @@ class GenRepoCommand extends HyperfCommand
 
     /**
      * generate the repository file.
+     *
+     * @param array<string, mixed> $columns
      */
     protected function generateRepository(string $className, string $domain, string $table, array $columns): void
     {
@@ -65,12 +67,14 @@ class GenRepoCommand extends HyperfCommand
 
         $uses = [
             "App\\Domain\\{$domain}\\Repository\\{$className}RepoInterface",
+            'AtelliTech\\Hyperf\\Utils\\Core\\AbstractRepository',
+            'App\Model\\' . $className,
         ];
 
         $data = [
             'NAMESPACE' => "App\\Infrastructure\\{$domain}\\Repository",
             'CLASS' => $className,
-            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
+            'USES' => 'use ' . implode(";\nuse ", $uses) . ';',
         ];
 
         $dest = $path . '/' . $className . 'Repo.php';
@@ -89,6 +93,8 @@ class GenRepoCommand extends HyperfCommand
 
     /**
      * generate the interface file.
+     *
+     * @param array<string, mixed> $columns
      */
     protected function generateInterface(string $className, string $domain, string $table, array $columns): void
     {
@@ -100,7 +106,6 @@ class GenRepoCommand extends HyperfCommand
         $data = [
             'NAMESPACE' => "App\\Domain\\{$domain}\\Repository",
             'CLASS' => $className,
-            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
         ];
 
         $dest = $path . '/' . $className . 'RepoInterface.php';
