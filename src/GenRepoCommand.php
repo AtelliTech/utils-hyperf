@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils;
 
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
+use Exception;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
-use Exception;
 
 #[Command(name: 'at:gen:repo', description: 'Generate Repository Interface and Repository Class')]
 class GenRepoCommand extends HyperfCommand
@@ -59,7 +59,7 @@ class GenRepoCommand extends HyperfCommand
     protected function generateRepository(string $className, string $domain, string $table, array $columns): void
     {
         $path = $this->basePath . "/app/Infrastructure/{$domain}/Repository";
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             mkdir($path, 0755, true);
         }
 
@@ -70,7 +70,7 @@ class GenRepoCommand extends HyperfCommand
         $data = [
             'NAMESPACE' => "App\\Infrastructure\\{$domain}\\Repository",
             'CLASS' => $className,
-            'USES' => !empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
+            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
         ];
 
         $dest = $path . '/' . $className . 'Repo.php';
@@ -93,14 +93,14 @@ class GenRepoCommand extends HyperfCommand
     protected function generateInterface(string $className, string $domain, string $table, array $columns): void
     {
         $path = $this->basePath . "/app/Domain/{$domain}/Repository";
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             mkdir($path, 0755, true);
         }
 
         $data = [
             'NAMESPACE' => "App\\Domain\\{$domain}\\Repository",
             'CLASS' => $className,
-            'USES' => !empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
+            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
         ];
 
         $dest = $path . '/' . $className . 'RepoInterface.php';
@@ -120,9 +120,7 @@ class GenRepoCommand extends HyperfCommand
     /**
      * generate the model file content.
      *
-     * @param string $stub
      * @param array<string, mixed> $data
-     * @param string $destination
      */
     protected function generateModelFileContent(string $stub, array $data, string $destination): void
     {

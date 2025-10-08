@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils;
 
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
+use Exception;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
-use Exception;
 
 #[Command(name: 'at:gen:entity', description: 'Generate model from database table')]
 class GenEntityCommand extends HyperfCommand
@@ -56,7 +56,7 @@ class GenEntityCommand extends HyperfCommand
     protected function generateEntity(string $className, string $domain, string $table, array $columns): void
     {
         $path = $this->basePath . "/app/Domain/{$domain}/Entity";
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             mkdir($path, 0755, true);
         }
 
@@ -66,16 +66,16 @@ class GenEntityCommand extends HyperfCommand
             $type = ($column->phpType === 'integer' ? 'int' : $column->phpType);
 
             // check is enum
-            if (!empty($column->enumValues)) {
+            if (! empty($column->enumValues)) {
                 $ovClass = Str::studly($column->name);
                 $type = $ovClass;
-                $uses[] = 'App\\Domain\\' . $domain . '\\ValueObject\\' . $ovClass;
+                $uses[] = 'App\Domain\\' . $domain . '\ValueObject\\' . $ovClass;
             }
 
             $property = $type . ' $' . $column->name;
 
             // check has default value
-            if (!empty($column->defaultValue) && empty($column->enumValues)) {
+            if (! empty($column->defaultValue) && empty($column->enumValues)) {
                 $property .= ' = ' . var_export($column->defaultValue, true) . ';';
             } else {
                 $property .= ';';
@@ -94,7 +94,7 @@ class GenEntityCommand extends HyperfCommand
             'NAMESPACE' => "App\\Domain\\{$domain}\\Entity",
             'CLASS' => $className,
             'PROPERTIES' => $properties,
-            'USES' => !empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
+            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
         ];
 
         $dest = $path . '/' . $className . '.php';
@@ -114,9 +114,7 @@ class GenEntityCommand extends HyperfCommand
     /**
      * generate the model file content.
      *
-     * @param string $stub
      * @param array<string, mixed> $data
-     * @param string $destination
      */
     protected function generateModelFileContent(string $stub, array $data, string $destination): void
     {

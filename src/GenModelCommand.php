@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils;
 
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
+use Exception;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
-use Exception;
 
 #[Command(name: 'at:gen:model', description: 'Generate model from database table')]
 class GenModelCommand extends HyperfCommand

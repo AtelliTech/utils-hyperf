@@ -94,8 +94,6 @@ class SchemaColumn
 
     /**
      * Converts the input value according to $phpType generated annotation type.
-     *
-     * @return string
      */
     public function getAnnotationType(): string
     {
