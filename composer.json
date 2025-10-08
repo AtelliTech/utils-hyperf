@@ -13,14 +13,8 @@
             "AtelliTech\\Hyperf\\Utils\\": "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "HyperfTest\\": "tests"
-        }
-    },
     "require": {
         "php": ">=8.3",
-        "doctrine/dbal": "^4.3",
         "hyperf/command": "^3.1",
         "hyperf/database": "^3.1",
         "hyperf/db-connection": "^3.1",
@@ -28,8 +22,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
-        "phpstan/phpstan": "^1.0",
-        "swoole/ide-helper": "dev-master"
+        "phpstan/phpstan": "^1.0"
     },
     "suggest": {
         "swow/swow": "Required to create swow components."
