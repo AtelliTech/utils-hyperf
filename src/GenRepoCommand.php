@@ -67,7 +67,7 @@ class GenRepoCommand extends HyperfCommand
 
         $uses = [
             "App\\Domain\\{$domain}\\Repository\\{$className}RepoInterface",
-            'AtelliTech\\Hyperf\\Utils\\Core\\AbstractRepository',
+            'AtelliTech\Hyperf\Utils\Core\AbstractRepository',
             'App\Model\\' . $className,
         ];
 
