@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils;
 
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
-use Exception;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
+use Exception;
 
 #[Command(name: 'at:gen:model', description: 'Generate model from database table')]
 class GenModelCommand extends HyperfCommand
@@ -54,11 +54,11 @@ class GenModelCommand extends HyperfCommand
         ];
         $fillable = [];
         $casts = [];
-        $annotations = [
-        ];
+        $annotations = [];
         $createdAt = 'null';
         $updatedAt = 'null';
         $relations = [];
+        $defaults = [];
 
         // determine fillable and casts
         foreach ($columns as $column) {
@@ -80,13 +80,7 @@ class GenModelCommand extends HyperfCommand
             $attrs = [];
             $attrs['property'] = $column->name;
             $attrs['description'] = $column->comment ?? '';
-            $attrs['type'] = match ($column->phpType) {
-                'int', 'integer' => 'integer',
-                'float', 'double', 'real' => 'number',
-                'bool', 'boolean' => 'boolean',
-                'array' => 'array',
-                default => 'string',
-            };
+            $attrs['type'] = $column->getAnnotationType();
 
             if (strpos($column->dbType, 'enum') !== false && ! empty($column->enumValues)) {
                 $comments = explode(',', $column->comment ?? '');
@@ -111,6 +105,11 @@ class GenModelCommand extends HyperfCommand
 
             if (! empty($column->defaultValue)) {
                 $attrs['default'] = (string) $column->defaultValue;
+                $defaults[$column->name] = $column->defaultValue;
+            }
+
+            if ($column->phpType == 'string' && isset($column->size)) {
+                $attrs['maxLength'] = $column->size;
             }
 
             $annotation = "        new OA\\Property(\n";
@@ -142,7 +141,7 @@ class GenModelCommand extends HyperfCommand
             $annotations[] = $annotation;
 
             // check foreign key for relations
-            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['updated_by'])) {
+            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['created_by', 'updated_by'])) {
                 $refTable = $matches[1];
                 $refColumn = $matches[2];
                 $methodName = Str::singular($refTable);
@@ -170,6 +169,7 @@ class GenModelCommand extends HyperfCommand
             'CREATEDAT' => $createdAt,
             'UPDATEDAT' => $updatedAt,
             'RELATIONS' => implode("\n\n", $relations),
+            'DEFAULTS' => ! empty($defaults) ? "    /**\n     * The default attributes for the model.\n     */\n    protected array \$attributes = [\n        " . implode(",\n        ", array_map(fn ($k, $v) => "'{$k}' => " . (is_string($v) ? "'{$v}'" : $v), array_keys($defaults), $defaults)) . "\n    ];" : '',
         ];
         $dest = $path . '/' . $className . '.php';
         if (file_exists($dest)) {

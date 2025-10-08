@@ -44,5 +44,7 @@ class %CLASS% extends %INHERITANCE%
      */
     protected ?string $dateFormat = 'U';
 
+%DEFAULTS%
+
 %RELATIONS%
 }

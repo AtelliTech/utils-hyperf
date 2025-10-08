@@ -93,6 +93,22 @@ class SchemaColumn
     }
 
     /**
+     * Converts the input value according to $phpType generated annotation type.
+     *
+     * @return string
+     */
+    public function getAnnotationType(): string
+    {
+        return match ($this->phpType) {
+            'int', 'integer' => 'integer',
+            'float', 'double', 'real' => 'number',
+            'bool', 'boolean' => 'boolean',
+            'array' => 'array',
+            default => 'string',
+        };
+    }
+
+    /**
      * Typecasts a value to the appropriate PHP type.
      *
      * @param mixed $value the value to be typecasted

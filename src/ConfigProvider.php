@@ -26,6 +26,7 @@ class ConfigProvider
             ],
             'commands' => [
                 GenModelCommand::class,
+                GenEntityCommand::class,
             ],
             'annotations' => [
                 'scan' => [
