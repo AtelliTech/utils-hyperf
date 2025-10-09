@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace AtelliTech\Hyperf\Utils\Core;
 
+use Closure;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
+use Hyperf\DbConnection\Db;
 use InvalidArgumentException;
 
 /**
  * @template TModel of Model
+ * @implements RepositoryInterface<TModel>
  */
-abstract class AbstractRepository
+abstract class AbstractRepository implements RepositoryInterface
 {
     /** @var class-string<TModel> */
     protected string $modelClass;
@@ -38,6 +41,9 @@ abstract class AbstractRepository
         return $model->update($data);
     }
 
+    /**
+     * Delete a record by primary key.
+     */
     public function delete(mixed $id): bool
     {
         $model = $this->findOne($id);
@@ -45,11 +51,10 @@ abstract class AbstractRepository
     }
 
     /**
-     * @param mixed $pk primary key value
-     * @return null|TModel
+     * @return TModel
      * @throws InvalidArgumentException if record not found
      */
-    public function findOne(mixed $pk): ?Model
+    public function findOne(mixed $pk): Model
     {
         /** @var Builder<TModel> $query */
         $query = $this->modelClass::query();
@@ -70,5 +75,17 @@ abstract class AbstractRepository
     public function find(): Builder
     {
         return $this->modelClass::query();
+    }
+
+    /**
+     * Run a database transaction.
+     *
+     * @template TReturn
+     * @param Closure(): TReturn $callback
+     * @return TReturn
+     */
+    public function transaction(Closure $callback)
+    {
+        return Db::transaction($callback);
     }
 }
