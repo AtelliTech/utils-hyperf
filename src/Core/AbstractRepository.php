@@ -6,8 +6,8 @@ namespace AtelliTech\Hyperf\Utils\Core;
 
 use Closure;
 use Hyperf\Database\Model\Builder;
-use Hyperf\Database\Model\Model;
 use Hyperf\DbConnection\Db;
+use Hyperf\DbConnection\Model\Model;
 use InvalidArgumentException;
 
 /**

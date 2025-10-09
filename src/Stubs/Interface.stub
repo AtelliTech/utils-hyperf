@@ -4,5 +4,7 @@ declare(strict_types=1);
 
 namespace %NAMESPACE%;
 
-interface %CLASS%RepoInterface {
+use AtelliTech\Hyperf\Utils\Core\RepositoryInterface;
+
+interface %CLASS%RepoInterface extends RepositoryInterface {
 }

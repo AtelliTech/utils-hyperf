@@ -141,11 +141,11 @@ class GenModelCommand extends HyperfCommand
             $annotations[] = $annotation;
 
             // check foreign key for relations
-            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['created_by', 'updated_by'])) {
+            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['updated_by'])) {
                 $refTable = $matches[1];
                 $refColumn = $matches[2];
                 $methodName = Str::singular($refTable);
-                $refClass = Str::studly($refTable);
+                $refClass = Str::studly(Str::singular($refTable));
                 $relation = "    /**\n";
                 $relation .= "     * Get the {$methodName} that owns the {$className}.\n";
                 $relation .= "     */\n";
