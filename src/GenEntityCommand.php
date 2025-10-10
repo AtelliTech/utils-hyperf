@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AtelliTech\Hyperf\Utils;
 
+use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaColumn;
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
 
-#[Command(name: 'at:gen:entity', description: 'Generate model from database table')]
+#[Command(name: 'at:gen:entity', description: 'Generate Entity from table')]
 class GenEntityCommand extends AbstractGenCommand
 {
     /**
@@ -36,58 +37,59 @@ class GenEntityCommand extends AbstractGenCommand
         $db = Db::connection($connection);
         $schemaReader = new SchemaReader($db);
         $columns = $schemaReader->getTableColumns($table);
-        $singularTable = Str::singular($table);
-        $className = Str::studly($singularTable);
 
         // generate entity
-        $this->generateEntity($className, $domain, $table, $columns);
+        $this->generateEntity($domain, $table, $columns);
     }
 
     /**
      * generate the entity file.
+     *
+     * @param SchemaColumn[] $columns
      */
-    protected function generateEntity(string $className, string $domain, string $table, array $columns): void
+    protected function generateEntity(string $domain, string $table, array $columns): void
     {
         $path = $this->basePath . "/app/Domain/{$domain}/Entity";
         if (! is_dir($path)) {
             mkdir($path, 0755, true);
         }
 
-        $properties = [];
+        $args = [];
+        $toArrays = [];
         $uses = [];
         foreach ($columns as $column) {
-            $type = ($column->phpType === 'integer' ? 'int' : $column->phpType);
-
             // check is enum
-            if (! empty($column->enumValues)) {
-                $ovClass = Str::studly($column->name);
-                $type = $ovClass;
-                $uses[] = 'App\Domain\\' . $domain . '\ValueObject\\' . $ovClass;
+            if (empty($column->enumValues)) {
+                $type = ($column->phpType === 'integer' ? 'int' : $column->phpType);
+                $args[] = sprintf('private %s $%s', $type, $column->name);
+                $toArrays[] = sprintf('\'%s\' => $this->%s', $column->name, $column->name);
+                continue;
             }
 
-            $property = $type . ' $' . $column->name;
+            $name = Str::studly($column->name);
+            $args[] = sprintf('private %s $%s', $name, $column->name);
+            $toArrays[] = sprintf('\'%s\' => $this->%s->value', $column->name, $column->name);
+            $uses[] = "use App\\Domain\\{$domain}\\ValueObject\\{$name};";
 
-            // check has default value
-            if (! empty($column->defaultValue) && empty($column->enumValues)) {
-                $property .= ' = ' . var_export($column->defaultValue, true) . ';';
-            } else {
-                $property .= ';';
+            $dest = $path . '/' . $name . '.php';
+            if (file_exists($dest)) {
+                echo "File already exists: {$dest}, overwrite it? (y/n)\n";
+                $gets = (string) fgets(STDIN);
+                $answer = trim($gets);
+                if ($answer !== 'y') {
+                    return;
+                }
             }
-
-            if ($column->allowNull) {
-                $property = '?' . $property;
-            }
-
-            $properties[] = '    protected ' . $property;
         }
 
-        $properties = implode("\n\n", $properties);
-
+        $class = Str::singular($table);
+        $className = Str::studly($class);
         $data = [
             'NAMESPACE' => "App\\Domain\\{$domain}\\Entity",
+            'USES' => implode("\n", $uses),
             'CLASS' => $className,
-            'PROPERTIES' => $properties,
-            'USES' => ! empty($uses) ? 'use ' . implode(";\nuse ", $uses) . ';' : '',
+            'ARGS' => implode(",\n            ", $args),
+            'TOARRAYS' => implode(",\n            ", $toArrays),
         ];
 
         $dest = $path . '/' . $className . '.php';

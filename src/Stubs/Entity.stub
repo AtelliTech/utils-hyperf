@@ -5,7 +5,31 @@ declare(strict_types=1);
 namespace %NAMESPACE%;
 
 %USES%
+use LogicException;
 
-final class %CLASS% {
-%PROPERTIES%
+final class %CLASS%
+{
+    /**
+     * Constructor
+     */
+    public function __construct(
+            %ARGS%
+        ){
+
+        }
+
+    /**
+     * to array
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            %TOARRAYS%
+        ];
+    }
+
+    private function __clone() {}
+    public function __serialize(): never { throw new LogicException('%CLASS% entity cannot be serialized'); }
 }
