@@ -25,11 +25,14 @@ interface RepositoryInterface
      * Update a record by primary key.
      *
      * @param array<string, mixed> $data
+     * @return bool True on success, false on failure
      */
     public function update(mixed $id, array $data): bool;
 
     /**
      * Delete a record by primary key.
+     *
+     * @return bool True on success, false on failure
      */
     public function delete(mixed $id): bool;
 

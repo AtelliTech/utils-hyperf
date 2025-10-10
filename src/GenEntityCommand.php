@@ -5,21 +5,14 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils;
 
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
-use Exception;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\DbConnection\Db;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
 
 #[Command(name: 'at:gen:entity', description: 'Generate model from database table')]
-class GenEntityCommand extends HyperfCommand
+class GenEntityCommand extends AbstractGenCommand
 {
-    /**
-     * @var string
-     */
-    protected $basePath = BASE_PATH;
-
     /**
      * configure the command.
      */
@@ -107,27 +100,6 @@ class GenEntityCommand extends HyperfCommand
             }
         }
 
-        $stub = 'Entity.stub';
-        $this->generateModelFileContent($stub, $data, $dest);
-    }
-
-    /**
-     * generate the model file content.
-     *
-     * @param array<string, mixed> $data
-     */
-    protected function generateModelFileContent(string $stub, array $data, string $destination): void
-    {
-        $stub = file_get_contents(__DIR__ . '/Stubs/' . $stub);
-        if ($stub === false) {
-            throw new Exception('Failed to read stub file.');
-        }
-
-        foreach ($data as $key => $value) {
-            $stub = str_replace("%{$key}%", $value, $stub);
-        }
-
-        file_put_contents($destination, $stub);
-        echo "Model file generated: {$destination}\n";
+        $this->generateModelFileContent('Entity.stub', $data, $dest);
     }
 }

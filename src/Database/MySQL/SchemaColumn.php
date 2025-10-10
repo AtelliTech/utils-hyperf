@@ -50,7 +50,7 @@ class SchemaColumn
     public bool $unsigned = false;
 
     /**
-     * @var null|array<int, array<int, string>|string>
+     * @var null|array<int, string>
      */
     public ?array $enumValues;
 

@@ -114,10 +114,8 @@ class SchemaReader extends Schema
             }
             if (! empty($matches[2])) {
                 if ($type === 'enum') {
-                    preg_match_all("/'[^']*'/", $matches[2], $values);
-                    foreach ($values[0] as $i => $value) {
-                        $values[$i] = trim($value, "'");
-                    }
+                    $values = explode(',', $matches[2]);
+                    $values = array_map(fn ($value) => trim($value, "'"), $values);
                     $column->enumValues = $values;
                 } else {
                     $values = explode(',', $matches[2]);

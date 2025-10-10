@@ -20,6 +20,8 @@ abstract class AbstractRepository implements RepositoryInterface
     protected string $modelClass;
 
     /**
+     * Create a new record.
+     *
      * @param array<string, mixed> $data
      * @return TModel
      */
@@ -33,7 +35,10 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
+     * Update a record by primary key.
+     *
      * @param array<string, mixed> $data
+     * @return bool True on success, false on failure
      */
     public function update(mixed $id, array $data): bool
     {
@@ -43,16 +48,19 @@ abstract class AbstractRepository implements RepositoryInterface
 
     /**
      * Delete a record by primary key.
+     *
+     * @return bool True on success, false on failure
      */
     public function delete(mixed $id): bool
     {
         $model = $this->findOne($id);
-        return $model ? $model->delete() : false;
+        return $model->delete();
     }
 
     /**
+     * Find a record by primary key.
+     *
      * @return TModel
-     * @throws InvalidArgumentException if record not found
      */
     public function findOne(mixed $pk): Model
     {
@@ -70,6 +78,8 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
+     * Create a query builder for the model.
+     *
      * @return Builder<TModel>
      */
     public function find(): Builder
