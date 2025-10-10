@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+namespace %NAMESPACE%;
+
+use AtelliTech\Hyperf\Utils\Core\Validation\AbstractValidator;
+
+class %CLASS% extends AbstractValidator
+{
+    /**
+     * Rule definition.
+     *
+     * @return array<string, mixed>
+     */
+    protected function rules(): array
+    {
+        return [
+%DEFINITIONS%
+        ];
+    }
+
+    /**
+     * Default values
+     *
+     * @return array<string, mixed>
+     */
+    protected function defaults(): array
+    {
+        return [
+%DEFAULTS%
+        ];
+    }
+
+    /**
+     * Custom error messages.
+     *
+     * @return array<string, string>
+     */
+    // protected function messages(): array
+    // {
+    //     return [];
+    // }
+}

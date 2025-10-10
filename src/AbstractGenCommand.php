@@ -7,9 +7,6 @@ namespace AtelliTech\Hyperf\Utils;
 use Exception;
 use Hyperf\Command\Command;
 
-/**
- * Abstract class for generating code from database schema.
- */
 abstract class AbstractGenCommand extends Command
 {
     /**

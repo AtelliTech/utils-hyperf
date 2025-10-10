@@ -48,7 +48,7 @@ abstract class AbstractValidator
     {
         if (! array_key_exists($name, $this->attributes)) {
             throw new InvalidArgumentException(
-                sprintf('%s: undefined property "%s"', $name, static::class)
+                sprintf('%s: undefined property "%s"', static::class, $name)
             );
         }
 
@@ -69,10 +69,13 @@ abstract class AbstractValidator
             throw new RuntimeException('Unknown keys: ' . implode(', ', $unknownKeys));
         }
 
+        // prepare attributes with defaults
+        $attributes = $this->defaults();
         foreach ($this->fields as $field) {
-            $this->attributes[$field] = $data[$field] ?? null;
+            $attributes[$field] = $data[$field] ?? ($attributes[$field] ?? null);
         }
 
+        $this->attributes = $attributes;
         $this->validated = false;
     }
 
@@ -117,6 +120,16 @@ abstract class AbstractValidator
      * @return array<string, string>
      */
     protected function messages(): array
+    {
+        return [];
+    }
+
+    /**
+     * Default values
+     *
+     * @return array<string, mixed>
+     */
+    protected function defaults(): array
     {
         return [];
     }
