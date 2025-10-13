@@ -15,6 +15,7 @@ namespace %NAMESPACE%;
 )]
 class %CLASS% extends %INHERITANCE%
 {
+%TRAITS%
     const CREATED_AT = %CREATEDAT%;
 
     const UPDATED_AT = %UPDATEDAT%;

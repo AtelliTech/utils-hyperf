@@ -82,8 +82,7 @@ class GenEntityCommand extends AbstractGenCommand
             }
         }
 
-        $class = Str::singular($table);
-        $className = Str::studly($class);
+        $className = $this->tableToClassName($table);
         $data = [
             'NAMESPACE' => "App\\Domain\\{$domain}\\Entity",
             'USES' => implode("\n", $uses),

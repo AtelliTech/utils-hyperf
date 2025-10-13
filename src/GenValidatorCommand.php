@@ -78,7 +78,7 @@ class GenValidatorCommand extends AbstractGenCommand
             }
 
             // check default
-            if (!empty($column->defaultValue)) {
+            if (! empty($column->defaultValue)) {
                 $defaults[] = sprintf("            '%s' => %s", $column->name, var_export($column->defaultValue, true));
             }
 

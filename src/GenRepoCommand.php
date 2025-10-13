@@ -7,7 +7,6 @@ namespace AtelliTech\Hyperf\Utils;
 use AtelliTech\Hyperf\Utils\Database\MySQL\SchemaReader;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\DbConnection\Db;
-use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
 
 #[Command(name: 'at:gen:repo', description: 'Generate Repository Interface and Repository Class')]
@@ -36,8 +35,7 @@ class GenRepoCommand extends AbstractGenCommand
         $db = Db::connection($connection);
         $schemaReader = new SchemaReader($db);
         $columns = $schemaReader->getTableColumns($table);
-        $singularTable = Str::singular($table);
-        $className = Str::studly($singularTable);
+        $className = $this->tableToClassName($table);
 
         // generate interface
         $this->generateInterface($className, $domain, $table, $columns);

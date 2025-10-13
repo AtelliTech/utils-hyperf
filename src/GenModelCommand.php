@@ -40,7 +40,7 @@ class GenModelCommand extends AbstractGenCommand
         $db = Db::connection($connection);
         $schemaReader = new SchemaReader($db);
         $columns = $schemaReader->getTableColumns($table);
-        $className = Str::studly(Str::singular($table));
+        $className = $this->tableToClassName($table);
 
         echo "Columns for table {$table}:\n";
         echo 'Class Name: ' . $className . "\n";
@@ -58,6 +58,7 @@ class GenModelCommand extends AbstractGenCommand
         $updatedAt = 'null';
         $relations = [];
         $defaults = [];
+        $useTraits = [];
 
         // determine fillable and casts
         foreach ($columns as $column) {
@@ -140,11 +141,11 @@ class GenModelCommand extends AbstractGenCommand
             $annotations[] = $annotation;
 
             // check foreign key for relations
-            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['updated_by'])) {
+            if (preg_match('/^fk:(\w+)\.(\w+)$/', $column->comment, $matches) != false && ! in_array($column->name, ['created_by', 'updated_by'])) {
                 $refTable = $matches[1];
                 $refColumn = $matches[2];
                 $methodName = Str::singular($refTable);
-                $refClass = Str::studly(Str::singular($refTable));
+                $refClass = $this->tableToClassName($refTable);
                 $relation = "    /**\n";
                 $relation .= "     * Get the {$methodName} that owns the {$className}.\n";
                 $relation .= "     */\n";
@@ -152,6 +153,14 @@ class GenModelCommand extends AbstractGenCommand
                 $relation .= "        return \$this->belongsTo({$refClass}::class, '{$column->name}', '{$refColumn}');\n";
                 $relation .= '    }';
                 $relations[] = $relation;
+            }
+
+            if ($column->name == 'created_by' || $column->name == 'updated_by') {
+                if ($column->name == 'created_by') {
+                    $useTraits[] = '    use CreatorTrait;';
+                } else {
+                    $useTraits[] = '    use UpdaterTrait;';
+                }
             }
         }
 
@@ -169,6 +178,7 @@ class GenModelCommand extends AbstractGenCommand
             'UPDATEDAT' => $updatedAt,
             'RELATIONS' => implode("\n\n", $relations),
             'DEFAULTS' => ! empty($defaults) ? "    /**\n     * The default attributes for the model.\n     */\n    protected array \$attributes = [\n        " . implode(",\n        ", array_map(fn ($k, $v) => "'{$k}' => " . (is_string($v) ? "'{$v}'" : $v), array_keys($defaults), $defaults)) . "\n    ];" : '',
+            'TRAITS' => ! empty($useTraits) ? implode("\n", $useTraits) . "\n" : '',
         ];
         $dest = $path . '/' . $className . '.php';
         if (file_exists($dest)) {

@@ -125,7 +125,7 @@ abstract class AbstractValidator
     }
 
     /**
-     * Default values
+     * Default values.
      *
      * @return array<string, mixed>
      */

@@ -6,6 +6,7 @@ namespace AtelliTech\Hyperf\Utils;
 
 use Exception;
 use Hyperf\Command\Command;
+use Hyperf\Stringable\Str;
 
 abstract class AbstractGenCommand extends Command
 {
@@ -33,5 +34,16 @@ abstract class AbstractGenCommand extends Command
 
         file_put_contents($destination, $stub);
         echo "Model file generated: {$destination}\n";
+    }
+
+    /**
+     * convert table name into class name.
+     */
+    protected function tableToClassName(string $table): string
+    {
+        $names = explode('_', $table);
+        $names = array_map(fn ($name) => Str::singular($name), $names);
+        $names = array_map(fn ($name) => Str::studly($name), $names);
+        return implode('', $names);
     }
 }
