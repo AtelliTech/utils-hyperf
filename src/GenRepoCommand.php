@@ -51,19 +51,18 @@ class GenRepoCommand extends AbstractGenCommand
      */
     protected function generateRepository(string $className, string $domain, string $table, array $columns): void
     {
-        $path = $this->basePath . "/app/Infrastructure/{$domain}/Repository";
+        $path = $this->basePath . "/app/Domain/{$domain}/Repository";
         if (! is_dir($path)) {
             mkdir($path, 0755, true);
         }
 
         $uses = [
-            "App\\Domain\\{$domain}\\Repository\\{$className}RepoInterface",
             'AtelliTech\Hyperf\Utils\Core\AbstractRepository',
             'App\Model\\' . $className,
         ];
 
         $data = [
-            'NAMESPACE' => "App\\Infrastructure\\{$domain}\\Repository",
+            'NAMESPACE' => "App\\Domain\\{$domain}\\Repository",
             'CLASS' => $className,
             'USES' => 'use ' . implode(";\nuse ", $uses) . ';',
         ];
