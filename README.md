@@ -42,7 +42,7 @@ Namespace of model class
 
 ---
 
-## Repository Generator
+## Repository, ValueObject and Validator Generator
 Gernerate repository, value object, validator by table and outfile file into specific domain.
 
 
