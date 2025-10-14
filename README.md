@@ -56,3 +56,19 @@ $ php bin/hyperf.php at:gen:[repo|vo|validator] [--disable-event-dispatcher] [--
 Table name
 - domain
 DDD Domain name
+
+---
+
+## API Spec Page Generator
+Generate API documentation page by namespace and path
+
+### Usage
+```
+$ php bin/hyperf.php at:gen:apidoc [options] [--] [<namespace> [<path>]]
+```
+
+### Options
+- namespace
+Name of class namespace
+- path
+Path of generated file

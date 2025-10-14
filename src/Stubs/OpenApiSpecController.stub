@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace %NAMESPACE%;
+
+use Hyperf\HttpMessage\Stream\SwooleStream;
+use OpenApi\Attributes as OA;
+use OpenApi\Generator;
+
+/**
+ * OpenAPI Specification.
+ */
+#[OA\OpenApi(
+    openapi: OA\OpenApi::VERSION_3_1_0,
+    security: [['bearerAuth' => []]],
+    servers: [
+        new OA\Server(
+            url: 'http://localhost:9501',
+            description: 'Development server'
+        ),
+    ]
+)]
+#[OA\Info(
+    version: '1.0.0',
+    title: 'XXXX APIs[v1]',
+    description: 'APIs document of v1 that based on Swagger OpenAPI',
+    termsOfService: 'http://swagger.io/terms/',
+    contact: new OA\Contact(name: 'Tech Team', email: 'tech@abc.com'),
+    license: new OA\License(name: 'MIT', identifier: 'MIT')
+)]
+#[OA\SecurityScheme(
+    securityScheme: 'bearerAuth',
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+    in: 'header',
+    description: 'Authentication (Based on User Token): Bearer {Access Token}'
+)]
+class OpenApiSpecController extends AbstractController
+{
+    /**
+     * display api documentation.
+     *
+     * @return array|string
+     */
+    public function index()
+    {
+        $format = $this->request->input('format', 'html');
+
+        // custom paths for scaning
+        $srcPath = BASE_PATH . '/app';
+        $openapi = Generator::scan([$srcPath]);
+
+        // handle format
+        if ($format == 'json') {
+            $contents = $openapi->toJson();
+            return $this->response->json(json_decode($contents, true));
+        }
+        if ($format == 'yaml') {
+            $contents = $openapi->toYaml();
+            return $this->response->addHeader('Content-Type', 'application/x-yaml')
+                ->setBody(new SwooleStream($contents));
+        }
+        $host = $this->request->getUri()->getHost();
+        if ($this->request->getUri()->getPort() !== 80 && $this->request->getUri()->getPort() !== 443) {
+            $host .= ':' . $this->request->getUri()->getPort();
+        }
+        $yamlUrl = sprintf('//%s/apidoc?format=yaml', $host);
+
+        // set html content
+        $contents = <<<HTML
+                <!doctype html>
+                <html lang="en">
+
+                <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                <title>PIXNET BLOG APIs[v1]</title>
+                <!-- Embed elements Elements via Web Component -->
+                <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+                <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
+                </head>
+
+                <body>
+
+                <elements-api id="docs" router="hash" layout="sidebar"></elements-api>
+                <script>
+                    (async () => {
+                    const docs = document.getElementById('docs');
+                    const text = await fetch('{$yamlUrl}').then(res => res.text())
+                    docs.apiDescriptionDocument = text;
+                    })();
+                </script>
+
+                </body>
+
+                </html>
+            HTML;
+        return $this->response->html($contents);
+    }
+}
