@@ -91,7 +91,7 @@ if (file_exists($src)) {
 return array_merge((array) $autoDependencies, [
     // other manual dependencies
 ]);
-
+```
 
 #### Step2 Execute the command belows
 ```
