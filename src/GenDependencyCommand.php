@@ -7,7 +7,6 @@ namespace AtelliTech\Hyperf\Utils;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Stringable\Str;
 use Symfony\Component\Console\Input\InputArgument;
-use ReflectionClass;
 
 #[Command(name: 'at:gen:di', description: 'Scan repository and service to generate dependencies')]
 class GenDependencyCommand extends AbstractGenCommand
@@ -36,7 +35,7 @@ class GenDependencyCommand extends AbstractGenCommand
         $entries = explode("\n", trim($output));
         $services = [];
         $repos = [];
-        foreach($entries as $entry) {
+        foreach ($entries as $entry) {
             if (preg_match('/(Repo|Service)\.php$/', $entry, $matches) == false) {
                 continue;
             }
@@ -53,7 +52,7 @@ class GenDependencyCommand extends AbstractGenCommand
             if ($matches[1] == 'Repo') {
                 $interface = $class . 'Interface';
                 $repos[$interface] = $class;
-            } else if ($matches[1] == 'Service') {
+            } elseif ($matches[1] == 'Service') {
                 $services[$class] = $class;
             }
         }

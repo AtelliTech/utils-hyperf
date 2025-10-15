@@ -72,3 +72,44 @@ $ php bin/hyperf.php at:gen:apidoc [options] [--] [<namespace> [<path>]]
 Name of class namespace
 - path
 Path of generated file
+
+---
+
+## Generate dependency files
+Generate dependency file for Repository, Service class by scaning specific path which the default is "{root path}/app".
+The generated file named "autoload_denpendencies.php" which locating at "config/autoload/"
+
+### Usage
+#### Step1 Add require file script into "config/autoload/dependencies.php"
+```php
+$src = __DIR__ . '/autoload_dependencies.php';
+$autoDependencies = [];
+if (file_exists($src)) {
+    $autoDependencies = require $src;
+}
+
+return array_merge((array) $autoDependencies, [
+    // other manual dependencies
+]);
+
+
+#### Step2 Execute the command belows
+```
+$ php bin/hyperf.php at:gen:di [options] [--] [<path>]
+```
+
+##### Options
+- path
+Path of generated file
+
+#### Step3 Setup script into "composer.json"
+```json=
+{
+    // other configuration
+
+    "scripts": {
+        // ... other script command
+        "di": "php bin/hyperf.php at:gen:di"
+    }
+}
+```

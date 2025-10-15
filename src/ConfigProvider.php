@@ -25,8 +25,13 @@ class ConfigProvider
             'dependencies' => [
             ],
             'commands' => [
-                GenModelCommand::class,
+                GenApiSpecCommand::class,
+                GenDependencyCommand::class,
                 GenEntityCommand::class,
+                GenModelCommand::class,
+                GenRepoCommand::class,
+                GenValidatorCommand::class,
+                GenValueObjectCommand::class,
             ],
             'annotations' => [
                 'scan' => [
