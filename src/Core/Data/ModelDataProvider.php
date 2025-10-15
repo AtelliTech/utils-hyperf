@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils\Core\Data;
 
 use Hyperf\Database\Model\Builder;
+use Hyperf\Database\Model\Collection;
 use InvalidArgumentException;
 
 /**
@@ -28,19 +29,28 @@ class ModelDataProvider
     protected int $totalCount = 0;
 
     /**
-     * @var array<int, mixed>
+     * @var array<int, array<string, mixed>>
      */
     protected array $models = [];
 
     protected bool $prepared = false;
 
     /**
-     * @param Builder<TModel> $query
-     * @param array<string,mixed> $params
+     * A callable to process each model after retrieval.
+     *
+     * @var null|callable
      */
-    public function __construct(Builder $query, array $params = [])
+    protected $modelProcessor;
+
+    /**
+     * @param Builder<TModel> $query
+     * @param array{page?: int, pageSize?: int, sort?: string} $params
+     * @param null|callable $modelProcessor A callable to process each model after retrieval. Signature: function(TModel $model): mixed
+     */
+    public function __construct(Builder $query, array $params = [], ?callable $modelProcessor = null)
     {
         $this->query = clone $query; // avoid modify original query
+        $this->modelProcessor = $modelProcessor;
 
         // load params
         $this->page = max((int) ($params['page'] ?? 1), 1);
@@ -51,7 +61,7 @@ class ModelDataProvider
     /**
      * Get models.
      *
-     * @return array<int, mixed>
+     * @return array<int, array<string, mixed>>
      */
     public function getModels(): array
     {
@@ -59,7 +69,7 @@ class ModelDataProvider
             $this->prepareData();
         }
 
-        return $this->models ?? [];
+        return $this->models;
     }
 
     /**
@@ -86,12 +96,17 @@ class ModelDataProvider
     /**
      * To array.
      *
-     * @return array{data: array<int, mixed>, meta: array{page: int, pageSize: int, totalCount: int, pageCount: int}}
+     * @return array{data: array<int, array<string, mixed>>, meta: array{page: int, pageSize: int, totalCount: int, pageCount: int}}
      */
     public function toArray(): array
     {
+        $models = $this->getModels();
+        if ($this->modelProcessor !== null && is_callable($this->modelProcessor)) {
+            $models = array_map($this->modelProcessor, $models);
+        }
+
         return [
-            'data' => $this->getModels(),
+            'data' => $models,
             'meta' => $this->getMeta(),
         ];
     }
@@ -107,12 +122,20 @@ class ModelDataProvider
 
         $offset = ($this->page - 1) * $this->pageSize;
 
-        $this->models = $query
+        /** @var Collection<int, TModel> $models */
+        $models = $query
             ->skip($offset)
             ->take($this->pageSize)
-            ->get()
-            ->toArray();
+            ->get();
 
+        // Apply model processor if provided
+        if ($this->modelProcessor) {
+            $models = $models->map(function ($model) {
+                return call_user_func($this->modelProcessor, $model);
+            });
+        }
+
+        $this->models = $models->toArray();
         $this->prepared = true;
     }
 
