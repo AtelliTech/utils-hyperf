@@ -96,7 +96,7 @@ class ModelDataProvider
     /**
      * To array.
      *
-     * @return array{data: array<int, array<string, mixed>>, meta: array{page: int, pageSize: int, totalCount: int, pageCount: int}}
+     * @return array{_data: array<int, array<string, mixed>>, _meta: array{page: int, pageSize: int, totalCount: int, pageCount: int}}
      */
     public function toArray(): array
     {
@@ -106,8 +106,8 @@ class ModelDataProvider
         }
 
         return [
-            'data' => $models,
-            'meta' => $this->getMeta(),
+            '_data' => $models,
+            '_meta' => $this->getMeta(),
         ];
     }
 
