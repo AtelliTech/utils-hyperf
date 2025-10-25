@@ -50,6 +50,11 @@ class %CLASS% extends %INHERITANCE%
      */
     protected ?string $dateFormat = 'U';
 
+    /**
+     * Hidden attributes
+     */
+    protected array $hidden = %HIDDEN%;
+
 %DEFAULTS%
 
 %RELATIONS%
