@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * This is the base validator class.
+ * Base validator class for application-level validation logic.
  */
 abstract class AbstractValidator
 {
@@ -26,9 +26,6 @@ abstract class AbstractValidator
      */
     protected array $fields = [];
 
-    /**
-     * Constructor.
-     */
     public function __construct(protected ValidatorFactoryInterface $factory)
     {
         $rules = $this->rules();
@@ -40,12 +37,14 @@ abstract class AbstractValidator
     }
 
     /**
-     * Get attribute value by key.
-     *
-     * @return mixed
+     * Magic getter for validated attributes.
      */
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
+        if (! $this->validated) {
+            throw new RuntimeException('Data not validated yet.');
+        }
+
         if (! array_key_exists($name, $this->attributes)) {
             throw new InvalidArgumentException(
                 sprintf('%s: undefined property "%s"', static::class, $name)
@@ -56,20 +55,21 @@ abstract class AbstractValidator
     }
 
     /**
-     * load data into the validator.
+     * Load input data into the validator.
      *
      * @param array<string, mixed> $data
-     * @throws RuntimeException
      */
-    public function load(array $data): void
+    public function load(array $data): static
     {
-        // check has any unknown key of data not in fields
         $unknownKeys = array_diff(array_keys($data), $this->fields);
         if (! empty($unknownKeys)) {
-            throw new RuntimeException('Unknown keys: ' . implode(', ', $unknownKeys));
+            throw new RuntimeException(sprintf(
+                '[%s] Unknown keys: %s',
+                static::class,
+                implode(', ', $unknownKeys)
+            ));
         }
 
-        // prepare attributes with defaults
         $attributes = $this->defaults();
         foreach ($this->fields as $field) {
             $attributes[$field] = $data[$field] ?? ($attributes[$field] ?? null);
@@ -77,10 +77,12 @@ abstract class AbstractValidator
 
         $this->attributes = $attributes;
         $this->validated = false;
+
+        return $this;
     }
 
     /**
-     * Validate.
+     * Validate the loaded data.
      *
      * @throws ValidationException
      */
@@ -90,9 +92,19 @@ abstract class AbstractValidator
         $validator = $this->factory->make($this->attributes, $this->rules(), $this->messages());
 
         if ($validator->fails()) {
-            throw new ValidationException(
-                $validator->errors()->all()
-            );
+            $errors = [];
+
+            foreach ($this->fields as $field) {
+                if ($validator->errors()->has($field)) {
+                    $errors[$field] = $validator->errors()->get($field);
+                }
+            }
+
+            if (empty($errors)) {
+                $errors['_'] = $validator->errors()->all();
+            }
+
+            throw new ValidationException($errors);
         }
 
         $this->validated = true;
@@ -100,10 +112,9 @@ abstract class AbstractValidator
     }
 
     /**
-     * Get validated attributes.
+     * Return all validated attributes.
      *
      * @return array<string, mixed>
-     * @throws RuntimeException
      */
     public function validated(): array
     {
@@ -125,7 +136,7 @@ abstract class AbstractValidator
     }
 
     /**
-     * Default values.
+     * Default attribute values.
      *
      * @return array<string, mixed>
      */
@@ -135,7 +146,7 @@ abstract class AbstractValidator
     }
 
     /**
-     * Rule definition.
+     * Validation rules.
      *
      * @return array<string, mixed>
      */

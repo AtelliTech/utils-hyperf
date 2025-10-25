@@ -8,38 +8,40 @@ use Exception;
 
 class ValidationException extends Exception
 {
-    /**
-     * HTTP status code hint (optional, handled by ExceptionHandler).
-     */
-    protected int $statusCode = 400;
+    protected int $statusCode = 422; // HTTP 422 Unprocessable Entity
 
-    /**
-     * Machine-readable error code (optional).
-     */
     protected string $errorCode = 'VALIDATION_ERROR';
 
     /**
-     * Constructor.
-     *
-     * @param array<string, mixed> $errors
+     * @var array<string, array<int, string>>
+     */
+    protected array $errors;
+
+    /**
+     * @param array<string, array<int, string>> $errors
      */
     public function __construct(array $errors)
     {
-        $message = json_encode($errors, JSON_UNESCAPED_UNICODE);
-        if ($message === false) {
-            $message = '未知的驗證錯誤!';
+        $this->errors = $errors;
+
+        // Format error messages
+        $lines = [];
+        foreach ($errors as $field => $messages) {
+            $lines[] = sprintf('%s: %s', $field, implode(', ', $messages));
         }
-        parent::__construct($message);
+        $message = implode('; ', $lines);
+
+        parent::__construct($message, $this->statusCode);
     }
 
     /**
-     * Get validation errors.
+     * Get structured validation errors.
      *
-     * @return array<string, mixed>
+     * @return array<string, array<int, string>>
      */
     public function getErrors(): array
     {
-        return json_decode($this->getMessage(), true) ?? [];
+        return $this->errors;
     }
 
     public function getStatusCode(): int
