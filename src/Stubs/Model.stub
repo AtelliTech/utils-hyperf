@@ -21,6 +21,11 @@ class %CLASS% extends %INHERITANCE%
     const UPDATED_AT = %UPDATEDAT%;
 
     /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public bool $incrementing = %INCREMENTING%;
+
+    /**
      * The table associated with the model.
      */
     protected ?string $table = '%TABLE%';
