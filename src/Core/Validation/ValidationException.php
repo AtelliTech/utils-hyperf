@@ -4,10 +4,20 @@ declare(strict_types=1);
 
 namespace AtelliTech\Hyperf\Utils\Core\Validation;
 
-use InvalidArgumentException;
+use Exception;
 
-class ValidationException extends InvalidArgumentException
+class ValidationException extends Exception
 {
+    /**
+     * HTTP status code hint (optional, handled by ExceptionHandler).
+     */
+    protected int $statusCode = 400;
+
+    /**
+     * Machine-readable error code (optional).
+     */
+    protected string $errorCode = 'VALIDATION_ERROR';
+
     /**
      * Constructor.
      *
@@ -15,7 +25,10 @@ class ValidationException extends InvalidArgumentException
      */
     public function __construct(array $errors)
     {
-        $message = 'Validation failed: ' . json_encode($errors, JSON_UNESCAPED_UNICODE);
+        $message = json_encode($errors, JSON_UNESCAPED_UNICODE);
+        if ($message === false) {
+            $message = '未知的驗證錯誤!';
+        }
         parent::__construct($message);
     }
 
@@ -27,5 +40,15 @@ class ValidationException extends InvalidArgumentException
     public function getErrors(): array
     {
         return json_decode($this->getMessage(), true) ?? [];
+    }
+
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
+    public function getErrorCode(): string
+    {
+        return $this->errorCode;
     }
 }
