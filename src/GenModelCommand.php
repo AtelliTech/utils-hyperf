@@ -60,6 +60,7 @@ class GenModelCommand extends AbstractGenCommand
         $defaults = [];
         $useTraits = [];
         $incrementing = 'false';
+        $hidden = [];
 
         // determine fillable and casts
         foreach ($columns as $column) {
@@ -164,6 +165,8 @@ class GenModelCommand extends AbstractGenCommand
                 } else {
                     $useTraits[] = '    use UpdaterTrait;';
                 }
+
+                $hidden[] = $column->name;
             }
         }
 
@@ -183,6 +186,7 @@ class GenModelCommand extends AbstractGenCommand
             'DEFAULTS' => ! empty($defaults) ? "    /**\n     * The default attributes for the model.\n     */\n    protected array \$attributes = [\n        " . implode(",\n        ", array_map(fn ($k, $v) => "'{$k}' => " . (is_string($v) ? "'{$v}'" : $v), array_keys($defaults), $defaults)) . "\n    ];" : '',
             'TRAITS' => ! empty($useTraits) ? implode("\n", $useTraits) . "\n" : '',
             'INCREMENTING' => $incrementing,
+            'HIDDEN' => ! empty($hidden) ? "['" . implode("', '", $hidden) . "']" : '[]',
         ];
         $dest = $path . '/' . $className . '.php';
         if (file_exists($dest)) {
