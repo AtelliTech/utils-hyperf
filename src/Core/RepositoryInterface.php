@@ -19,15 +19,15 @@ interface RepositoryInterface
      * @param array<string, mixed> $data
      * @return TModel
      */
-    public function create(array $data): Model;
+    public function create(array $data, bool $useTransaction = false): Model;
 
     /**
      * Update a record by primary key.
      *
      * @param array<string, mixed> $data
-     * @return bool True on success, false on failure
+     * @return TModel
      */
-    public function update(mixed $id, array $data): bool;
+    public function update(mixed $id, array $data): Model;
 
     /**
      * Delete a record by primary key.
