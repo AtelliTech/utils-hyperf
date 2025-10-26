@@ -107,7 +107,7 @@ class GenModelCommand extends AbstractGenCommand
                 $attrs['nullable'] = true;
             }
 
-            if (property_exists($column, 'defaultValue') && $column->defaultValue !== null && $column->defaultValue !== '') {
+            if (isset($column->defaultValue) && $column->defaultValue !== null && $column->defaultValue !== '' && preg_match('/^(created|updated)\_at$/', $column->name) == false) {
                 $attrs['default'] = (string) $column->defaultValue;
                 $defaults[$column->name] = $column->defaultValue;
             }
