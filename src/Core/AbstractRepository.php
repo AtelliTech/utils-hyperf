@@ -9,6 +9,7 @@ use Hyperf\Database\Model\Builder;
 use Hyperf\DbConnection\Db;
 use Hyperf\DbConnection\Model\Model;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * @template TModel of Model
@@ -19,31 +20,55 @@ abstract class AbstractRepository implements RepositoryInterface
     /** @var class-string<TModel> */
     protected string $modelClass;
 
+    public function __construct()
+    {
+        if (! isset($this->modelClass)) {
+            throw new RuntimeException(static::class . ' must define $modelClass.');
+        }
+
+        if (! is_subclass_of($this->modelClass, Model::class)) {
+            throw new InvalidArgumentException("{$this->modelClass} must extend " . Model::class);
+        }
+    }
+
     /**
      * Create a new record.
      *
      * @param array<string, mixed> $data
      * @return TModel
      */
-    public function create(array $data): Model
+    public function create(array $data, bool $useTransaction = false): Model
     {
-        /** @var TModel $model */
-        $model = new $this->modelClass();
-        $model->fill($data);
-        $model->save();
-        return $model;
+        $callback = function () use ($data): Model {
+            /** @var TModel $model */
+            $model = new $this->modelClass();
+            $model->fill($data);
+            $model->save();
+            return $model;
+        };
+
+        return $useTransaction ? Db::transaction($callback) : $callback();
     }
 
     /**
      * Update a record by primary key.
      *
      * @param array<string, mixed> $data
-     * @return bool True on success, false on failure
+     * @return TModel
      */
-    public function update(mixed $id, array $data): bool
+    public function update(mixed $id, array $data): Model
     {
         $model = $this->findOne($id);
-        return $model->update($data);
+        if ($model === null) {
+            throw new InvalidArgumentException("Record with ID {$id} not found.");
+        }
+
+        $model->fill($data);
+        if ($model->isDirty() && ! $model->save()) {
+            throw new RuntimeException("Failed to update record with ID {$id}.");
+        }
+
+        return $model->refresh();
     }
 
     /**
@@ -54,27 +79,23 @@ abstract class AbstractRepository implements RepositoryInterface
     public function delete(mixed $id): bool
     {
         $model = $this->findOne($id);
+        if ($model === null) {
+            throw new InvalidArgumentException("Record with ID {$id} not found.");
+        }
         return $model->delete();
     }
 
     /**
      * Find a record by primary key.
      *
-     * @return TModel
+     * @return null|TModel
      */
-    public function findOne(mixed $pk): Model
+    public function findOne(mixed $pk): ?Model
     {
-        /** @var Builder<TModel> $query */
-        $query = $this->modelClass::query();
-
-        /** @var null|TModel $model */
-        $model = $query->find($pk);
-
-        if ($model === null) {
-            throw new InvalidArgumentException("Record({$pk}) of {$this->modelClass} not found");
-        }
-
-        return $model;
+        /**
+         * @var null|TModel
+         */
+        return $this->modelClass::query()->find($pk);
     }
 
     /**
