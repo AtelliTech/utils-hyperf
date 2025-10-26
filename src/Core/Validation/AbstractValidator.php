@@ -70,12 +70,7 @@ abstract class AbstractValidator
             ));
         }
 
-        $attributes = $this->defaults();
-        foreach ($this->fields as $field) {
-            $attributes[$field] = $data[$field] ?? ($attributes[$field] ?? null);
-        }
-
-        $this->attributes = $attributes;
+        $this->attributes = $data;
         $this->validated = false;
 
         return $this;
@@ -131,16 +126,6 @@ abstract class AbstractValidator
      * @return array<string, string>
      */
     protected function messages(): array
-    {
-        return [];
-    }
-
-    /**
-     * Default attribute values.
-     *
-     * @return array<string, mixed>
-     */
-    protected function defaults(): array
     {
         return [];
     }
