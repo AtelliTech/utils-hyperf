@@ -46,6 +46,10 @@ abstract class AbstractValidator
         }
 
         if (! array_key_exists($name, $this->attributes)) {
+            if (in_array($name, $this->fields, true)) {
+                return null;
+            }
+
             throw new InvalidArgumentException(
                 sprintf('%s: undefined property "%s"', static::class, $name)
             );
