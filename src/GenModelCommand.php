@@ -49,7 +49,7 @@ class GenModelCommand extends AbstractGenCommand
         echo "namespace: {$namespace}\n\n";
         $uses = [
             'Hyperf\DbConnection\Model\Model',
-            'OpenApi\Attributes as OA;',
+            'OpenApi\Attributes as OA',
         ];
         $fillable = [];
         $casts = [];
