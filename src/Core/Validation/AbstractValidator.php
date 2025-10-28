@@ -6,8 +6,6 @@ namespace AtelliTech\Hyperf\Utils\Core\Validation;
 
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 use Hyperf\Validation\Validator;
-use InvalidArgumentException;
-use RuntimeException;
 
 /**
  * Base validator class for application-level validation logic.
@@ -35,7 +33,7 @@ abstract class AbstractValidator
     {
         $rules = $this->rules();
         if (empty($rules)) {
-            throw new RuntimeException('Rules(' . static::class . ') cannot be empty.');
+            throw new ValidationException(['_' => ['No validation rules defined.']]);
         }
 
         $this->fields = array_keys($rules);
@@ -48,7 +46,7 @@ abstract class AbstractValidator
     public function __get(string $name): mixed
     {
         if (! $this->validated) {
-            throw new RuntimeException('Data not validated yet.');
+            throw new ValidationException(['_' => ['Data not validated yet.']]);
         }
 
         if (! array_key_exists($name, $this->attributes)) {
@@ -56,9 +54,7 @@ abstract class AbstractValidator
                 return null;
             }
 
-            throw new InvalidArgumentException(
-                sprintf('%s: undefined property "%s"', static::class, $name)
-            );
+            throw new ValidationException(['_' => ["Unknown attribute: {$name}"]]);
         }
 
         return $this->attributes[$name];
@@ -74,11 +70,9 @@ abstract class AbstractValidator
         // Check for unknown keys (optional, depending on requirements)
         $unknownKeys = array_diff(array_keys($data), $this->fields);
         if (! empty($unknownKeys)) {
-            throw new RuntimeException(sprintf(
-                '[%s] Unknown keys: %s',
-                static::class,
-                implode(', ', $unknownKeys)
-            ));
+            throw new ValidationException([
+                '_' => array_map(fn ($key) => "Unknown field: {$key}", $unknownKeys),
+            ]);
         }
 
         $this->attributes = $this->applyDefaults($data);
@@ -128,7 +122,7 @@ abstract class AbstractValidator
     public function validated(): array
     {
         if (! $this->validated) {
-            throw new RuntimeException('Data not validated yet.');
+            throw new ValidationException(['_' => ['Data not validated yet.']]);
         }
 
         return $this->attributes;
@@ -140,7 +134,7 @@ abstract class AbstractValidator
     public function get(string $name, mixed $default = null): mixed
     {
         if (! $this->validated) {
-            throw new RuntimeException('Data not validated yet.');
+            throw new ValidationException([$name => ['Data not validated yet.']]);
         }
 
         return $this->attributes[$name] ?? $default;
