@@ -4,21 +4,12 @@ declare(strict_types=1);
 
 namespace AtelliTech\Hyperf\Utils\Core\Data;
 
-use Hyperf\Database\Model\Builder;
-use Hyperf\Database\Model\Collection;
-use Hyperf\Database\Model\Model;
+use Hyperf\Database\Query\Builder;
 use InvalidArgumentException;
+use stdClass;
 
-/**
- * Data provider for Eloquent models.
- *
- * @template TModel of Model
- */
-class ModelDataProvider
+class QueryDataProvider
 {
-    /**
-     * @var Builder<TModel>
-     */
     protected Builder $query;
 
     protected int $page;
@@ -27,63 +18,51 @@ class ModelDataProvider
 
     protected ?string $sort;
 
-    /**
-     * @var array<string>
-     */
-    protected array $with = [];
-
     protected int $totalCount = 0;
 
     /**
-     * @var array<int, TModel>
+     * @var array<int, stdClass>
      */
-    protected array $models = [];
+    protected array $rows = [];
 
     protected bool $prepared = false;
 
     /**
-     * @var null|callable(TModel): mixed
+     * @var null|callable(stdClass): mixed
      */
-    protected $modelProcessor;
+    protected $rowProcessor;
 
     /**
-     * @param Builder<TModel> $query
      * @param array{
      *     page?: int,
      *     pageSize?: int,
-     *     sort?: string,
-     *     with?: array<string>
+     *     sort?: string
      * } $params
-     * @param null|callable(TModel): mixed $modelProcessor
+     * @param null|callable(stdClass): mixed $rowProcessor
      */
     public function __construct(
         Builder $query,
         array $params = [],
-        ?callable $modelProcessor = null
+        ?callable $rowProcessor = null
     ) {
         $this->query = clone $query;
-        $this->modelProcessor = $modelProcessor;
+        $this->rowProcessor = $rowProcessor;
 
         $this->page = max((int) ($params['page'] ?? 1), 1);
         $this->pageSize = max((int) ($params['pageSize'] ?? 20), 1);
         $this->sort = $params['sort'] ?? null;
-        $this->with = $params['with'] ?? [];
-
-        if (! empty($this->with)) {
-            $this->query->with($this->with);
-        }
     }
 
     /**
-     * @return array<int, TModel>
+     * @return array<int, stdClass>
      */
-    public function getModels(): array
+    public function getRows(): array
     {
         if (! $this->prepared) {
             $this->prepareData();
         }
 
-        return $this->models;
+        return $this->rows;
     }
 
     /**
@@ -110,11 +89,11 @@ class ModelDataProvider
      */
     public function toArray(): array
     {
-        $models = $this->getModels();
+        $rows = $this->getRows();
 
-        $data = $this->modelProcessor !== null
-            ? array_map($this->modelProcessor, $models)
-            : array_map(fn (Model $model) => $model->toArray(), $models);
+        $data = $this->rowProcessor !== null
+            ? array_map($this->rowProcessor, $rows)
+            : array_map(fn (stdClass $row) => (array) $row, $rows);
 
         return [
             '_data' => $data,
@@ -130,26 +109,22 @@ class ModelDataProvider
         $this->totalCount = $query->count();
 
         if ($this->totalCount === 0) {
-            $this->models = [];
+            $this->rows = [];
             $this->prepared = true;
             return;
         }
 
         $offset = ($this->page - 1) * $this->pageSize;
 
-        /** @var Collection<int, TModel> $collection */
-        $collection = $query
+        $this->rows = $query
             ->skip($offset)
             ->take($this->pageSize)
-            ->get();
+            ->get()
+            ->toArray();
 
-        $this->models = $collection->all();
         $this->prepared = true;
     }
 
-    /**
-     * @param Builder<TModel> $query
-     */
     protected function applySort(Builder $query): void
     {
         if (! $this->sort) {
