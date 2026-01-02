@@ -22,6 +22,14 @@ class ConfigProvider
     public function __invoke(): array
     {
         return [
+            'publish' => [
+                [
+                    'id' => 'config',
+                    'description' => 'The config file for utils-hyperf.',
+                    'source' => __DIR__ . '/../publish/audit_log.php',
+                    'destination' => BASE_PATH . '/config/autoload/audit_log.php',
+                ],
+            ],
             'dependencies' => [
             ],
             'commands' => [
