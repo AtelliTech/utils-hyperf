@@ -14,6 +14,8 @@ abstract class AbstractValidator
 {
     protected bool $validated = false;
 
+    protected bool $allowUnknown = false;
+
     /**
      * @var array<string, mixed>
      */
@@ -67,15 +69,19 @@ abstract class AbstractValidator
      */
     public function load(array $data): static
     {
-        // Check for unknown keys (optional, depending on requirements)
-        $unknownKeys = array_diff(array_keys($data), $this->fields);
-        if (! empty($unknownKeys)) {
-            throw new ValidationException([
-                '_' => array_map(fn ($key) => "Unknown field: {$key}", $unknownKeys),
-            ]);
+        if (! $this->allowUnknown) {
+            $unknownKeys = array_diff(array_keys($data), $this->fields);
+            if (! empty($unknownKeys)) {
+                throw new ValidationException([
+                    '_' => array_map(fn ($key) => "Unknown field: {$key}", $unknownKeys),
+                ]);
+            }
         }
 
-        $this->attributes = $this->applyDefaults($data);
+        // 🔥 關鍵：只保留定義過的欄位
+        $filtered = array_intersect_key($data, array_flip($this->fields));
+
+        $this->attributes = $this->applyDefaults($filtered);
         $this->validated = false;
 
         return $this;
