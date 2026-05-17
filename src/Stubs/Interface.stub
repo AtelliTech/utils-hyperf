@@ -6,8 +6,6 @@ namespace %NAMESPACE%;
 
 %USES%
 
-use AtelliTech\Hyperf\Utils\Core\RepositoryInterface;
-
 /**
  * @extends RepositoryInterface<%CLASS%>
  */
