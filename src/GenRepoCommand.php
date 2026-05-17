@@ -93,9 +93,15 @@ class GenRepoCommand extends AbstractGenCommand
             mkdir($path, 0755, true);
         }
 
+        $uses = [
+            'AtelliTech\Hyperf\Utils\Core\RepositoryInterface',
+            'App\Model\\' . $className,
+        ];
+
         $data = [
             'NAMESPACE' => "App\\Domain\\{$domain}\\Repository",
             'CLASS' => $className,
+            'USES' => 'use ' . implode(";\nuse ", $uses) . ';',
         ];
 
         $dest = $path . '/' . $className . 'RepoInterface.php';
