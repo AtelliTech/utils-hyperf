@@ -13,7 +13,7 @@ abstract class AbstractGenCommand extends Command
     /**
      * @var string
      */
-    protected $basePath = BASE_PATH; // @phpstan-ignore-line
+    protected $basePath = BASE_PATH;
 
     /**
      * generate the model file content.

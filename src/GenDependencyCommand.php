@@ -17,7 +17,7 @@ class GenDependencyCommand extends AbstractGenCommand
     public function configure()
     {
         parent::configure();
-        $this->addArgument('path', InputArgument::OPTIONAL, '預設: ' . BASE_PATH . '/app', BASE_PATH . '/app'); // @phpstan-ignore-line
+        $this->addArgument('path', InputArgument::OPTIONAL, '預設: ' . BASE_PATH . '/app', BASE_PATH . '/app');
     }
 
     /**
@@ -41,7 +41,7 @@ class GenDependencyCommand extends AbstractGenCommand
             }
 
             $class = Str::of($entry)
-                ->replace(BASE_PATH . '/', '') // @phpstan-ignore-line
+                ->replace(BASE_PATH . '/', '')
                 ->replace('/', '\\')
                 ->replace('.php', '')
                 ->replace('app\\', 'App\\')
@@ -70,7 +70,7 @@ class GenDependencyCommand extends AbstractGenCommand
         $depContent .= "return [\n";
         $depContent .= implode("\n", $depLines) . "\n";
         $depContent .= "];\n";
-        file_put_contents(BASE_PATH . '/config/autoload/autoload_dependencies.php', $depContent); // @phpstan-ignore-line
-        $this->info('Generated dependencies to ' . BASE_PATH . '/config/autoload/autoload_dependencies.php'); // @phpstan-ignore-line
+        file_put_contents(BASE_PATH . '/config/autoload/autoload_dependencies.php', $depContent);
+        $this->info('Generated dependencies to ' . BASE_PATH . '/config/autoload/autoload_dependencies.php');
     }
 }

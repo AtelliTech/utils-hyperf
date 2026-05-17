@@ -5,75 +5,129 @@ declare(strict_types=1);
 namespace AtelliTech\Hyperf\Utils\Listener;
 
 use Hyperf\Contract\ConfigInterface;
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Logger\LoggerFactory;
+use JsonException;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class AuditLogListener implements ListenerInterface
 {
-    #[Inject()]
-    private LoggerFactory $loggerFactory;
+    private LoggerInterface $auditLogger;
 
-    #[Inject()]
-    private ConfigInterface $config;
-
-    private LoggerInterface $audit;
+    public function __construct(
+        private readonly LoggerFactory $loggerFactory,
+        private readonly ConfigInterface $config,
+    ) {
+        $this->auditLogger = $this->loggerFactory->get('log', 'audit');
+    }
 
     /**
      * Events to listen.
+     *
+     * @return array<int, class-string>
      */
     public function listen(): array
     {
-        return $this->config->get('audit_log.events', []);
+        $events = $this->config->get('audit_log.events', []);
+
+        if (! is_array($events)) {
+            return [];
+        }
+
+        $classes = [];
+
+        foreach ($events as $event) {
+            if (! is_string($event)) {
+                continue;
+            }
+
+            if ($event === '') {
+                continue;
+            }
+
+            if (! class_exists($event)) {
+                continue;
+            }
+
+            /** @var class-string $event */
+            $classes[] = $event;
+        }
+
+        return $classes;
     }
 
-    /**
-     * Handle the event.
-     */
     public function process(object $event): void
     {
-        $this->audit = $this->loggerFactory->get('log', 'audit');
-
-        if ($event instanceof AuditLogEventInterface) {
-            $this->audit($event);
-        }
-    }
-
-    /**
-     * Audit the given event.
-     */
-    protected function audit(AuditLogEventInterface $event): void
-    {
-        $changes = [];
-
-        foreach ($event->getNewValues() as $key => $newValue) {
-            $originalValue = $event->getOriginalValues()[$key] ?? null;
-            if ($newValue !== $originalValue) {
-                $changes[] = [
-                    'attribute' => $key,
-                    'old' => $originalValue,
-                    'new' => $newValue,
-                ];
-            }
-        }
-
-        if (empty($changes)) {
+        if (! $event instanceof AuditLogEventInterface) {
             return;
         }
 
-        $this->storeAudit($event, $changes, $event->getEventName());
+        try {
+            $changes = $this->resolveChanges($event);
+
+            if ($changes === []) {
+                return;
+            }
+
+            $this->storeAudit($event, $changes);
+        } catch (Throwable $e) {
+            $this->auditLogger->error('Failed to write audit log.', [
+                'exception' => $e,
+                'event_class' => $event::class,
+            ]);
+        }
     }
 
     /**
-     * Store the audit log.
-     *
-     * @param array<int, array<string, mixed>> $changedAttributes
+     * @return array<int, array{
+     *     attribute: string,
+     *     old: mixed,
+     *     new: mixed
+     * }>
      */
-    protected function storeAudit(AuditLogEventInterface $event, array $changedAttributes, string $eventName): void
+    protected function resolveChanges(AuditLogEventInterface $event): array
+    {
+        $changes = [];
+
+        $originalValues = $event->getOriginalValues();
+        $newValues = $event->getNewValues();
+
+        foreach ($newValues as $key => $newValue) {
+            if (! is_string($key) && ! is_int($key)) {
+                continue;
+            }
+
+            $attribute = (string) $key;
+            $originalValue = $originalValues[$key] ?? null;
+
+            if ($newValue === $originalValue) {
+                continue;
+            }
+
+            $changes[] = [
+                'attribute' => $attribute,
+                'old' => $originalValue,
+                'new' => $newValue,
+            ];
+        }
+
+        return $changes;
+    }
+
+    /**
+     * @param array<int, array{
+     *     attribute: string,
+     *     old: mixed,
+     *     new: mixed
+     * }> $changedAttributes
+     *
+     * @throws JsonException
+     */
+    protected function storeAudit(AuditLogEventInterface $event, array $changedAttributes): void
     {
         $payload = [
-            'event' => $eventName,
+            'event' => $event->getEventName(),
             'table_name' => $event->getTableName(),
             'table_id' => $event->getTableId(),
             'created_by' => $event->getUserId(),
@@ -81,8 +135,11 @@ class AuditLogListener implements ListenerInterface
             'attributes' => $changedAttributes,
         ];
 
-        $payload = json_encode($payload, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        $message = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+        );
 
-        $this->audit->info($payload);
+        $this->auditLogger->info($message);
     }
 }

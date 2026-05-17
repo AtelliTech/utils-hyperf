@@ -3,3 +3,5 @@ parameters:
   treatPhpDocTypesAsCertain: false
   paths:
     - src
+  bootstrapFiles:
+    - phpstan-bootstrap.php

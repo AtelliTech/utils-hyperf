@@ -22,7 +22,6 @@ class GenModelCommand extends AbstractGenCommand
         parent::configure();
         $this->addArgument('table', InputArgument::REQUIRED, 'Table Name');
         $this->addArgument('namespace', InputArgument::OPTIONAL, 'Model Namespace', 'App\Model');
-        // @phpstan-ignore-next-line
         $this->addArgument('path', InputArgument::OPTIONAL, 'Model Path', BASE_PATH . '/app/Model');
         $this->addArgument('connection', InputArgument::OPTIONAL, 'Database Connection', 'default');
     }
