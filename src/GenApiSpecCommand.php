@@ -17,7 +17,6 @@ class GenApiSpecCommand extends AbstractGenCommand
     {
         parent::configure();
         $this->addArgument('namespace', InputArgument::OPTIONAL, 'API Spec Controller Namespace', 'App\Controller');
-        // @phpstan-ignore-next-line
         $this->addArgument('path', InputArgument::OPTIONAL, 'API Spec Controller Path', BASE_PATH . '/app/Controller');
     }
 

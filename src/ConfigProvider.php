@@ -30,8 +30,7 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/config/autoload/audit_log.php',
                 ],
             ],
-            'dependencies' => [
-            ],
+            'dependencies' => [],
             'commands' => [
                 GenApiSpecCommand::class,
                 GenDependencyCommand::class,
